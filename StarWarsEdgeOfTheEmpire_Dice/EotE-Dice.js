@@ -54,7 +54,10 @@
 			* default: 
 			* Description: create the difficulty and challenge dice for an opposed skill check
 			* Command: !eed opposed(char_value|skill_value)
-		
+		Damage
+            * default:
+            * Description: Base damage that will be used to calculate overall damage given extra successes.
+            * Command: !eed damage(X) and #b #g #y #blk #p #r #w
 		Dice
 			* default: 
 			* Description: Loop thru the dice and adds or subtracts them from the dice object
@@ -181,6 +184,7 @@
             resetdice : /(resetgmdice|resetdice)/,
             initiative : /\bnpcinit|\bpcinit/,
             characterID : /characterID\((.*?)\)/,
+            damage : /damage\((.*?)\)/,
             label : /label\((.*?)\)/,
             skill : /skill\((.*?)\)/g,
 			opposed : /opposed\((.*?)\)/g,
@@ -316,7 +320,8 @@
                 characterID : '',
                 playerName : '',
                 playerID : '',
-				label : ''
+				label : '',
+                damage : 0    
 			}
 		this.totals = {
 				success : 0,
@@ -427,6 +432,12 @@
             
             if (labelMatch) {
                 diceObj = eote.process.label(labelMatch, diceObj);
+            }
+        
+        var damageMatch = cmd.match(eote.defaults.regex.damage);
+        
+            if (damageMatch) {
+                diceObj = eote.process.damage(damageMatch, diceObj);
             }
         
         /* Dice rolls 
@@ -622,6 +633,24 @@
         
 		return diceObj;
 
+    }
+    
+    eote.process.damage = function(cmd, diceObj){
+        
+    /* Damage
+    *  default: 0
+    *  Description: set the base damage for the attack
+    *  Command: !eed damage(base damage)
+    *  ---------------------------------------------------------------- */
+        
+        var damage_base = cmd[1];
+        
+        if (damage_base) {
+            diceObj.vars.damage = parseInt(damage_base);
+        }
+        
+        return diceObj;
+        
     }
     
     eote.process.label = function(cmd, diceObj){
@@ -2082,6 +2111,12 @@
     			diceGraphicsResults = diceGraphicsResults + s1 + eote.defaults.graphics.SYMBOLS.D + s2 + "Dark" + s3 + eote.defaults.globalVars.diceGraphicsChatSize + s4 + eote.defaults.globalVars.diceGraphicsChatSize + s5;
     		}
     	}
+        
+        if (diceObj.vars.damage > 0 && diceObj.totals.success > diceObj.totals.failure)
+        {
+            diceTextResults = diceTextResults + "Damage: " + (diceObj.vars.damage + parseInt(diceObj.totals.success) - parseInt(diceObj.totals.failure));
+            diceGraphicsResults = diceGraphicsResults + "<br><b>Damage:</b><i>" + (diceObj.vars.damage + parseInt(diceObj.totals.success) - parseInt(diceObj.totals.failure)) + "</i>";
+        }
     	
         diceTextResults = diceTextResults + "]";
         
